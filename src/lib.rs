@@ -1,3 +1,4 @@
+use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
 use sha256::digest;
 use std::fmt;
@@ -54,15 +55,40 @@ pub enum PasswordType {
 
 pub struct GeneratorConfig {
     password_type: PasswordType,
-    length: u8,
+    length: usize,
     has_uppercase: bool,
     has_lowercase: bool,
     has_number: bool,
     has_special_char: bool,
 }
 
-fn generate_password(config: &GeneratorConfig) -> String {
-    String::new()
+impl GeneratorConfig {
+    pub fn new(
+        password_type: PasswordType,
+        length: usize,
+        has_uppercase: bool,
+        has_lowercase: bool,
+        has_number: bool,
+        has_special_char: bool,
+    ) -> GeneratorConfig {
+        GeneratorConfig {
+            password_type,
+            length,
+            has_uppercase,
+            has_lowercase,
+            has_number,
+            has_special_char,
+        }
+    }
+}
+
+pub fn generate_password(config: &GeneratorConfig) -> String {
+    match config.password_type {
+        PasswordType::PassWord => {
+            Alphanumeric.sample_string(&mut rand::thread_rng(), config.length)
+        }
+        PasswordType::PassPhrase => String::new(),
+    }
 }
 
 #[derive(PartialEq, Debug)]
@@ -104,20 +130,22 @@ mod tests {
             has_number: true,
             has_special_char: true,
         };
-        let generated = generate_password(&config);
-        assert_eq!(generated.len(), 8);
+        for _n in 1..100 {
+            let generated = generate_password(&config);
+            assert_eq!(generated.len(), 8);
 
-        let re = Regex::new(r"[A-Z]").unwrap();
-        assert!(re.is_match(generated.as_str()));
+            let re = Regex::new(r"[A-Z]").unwrap();
+            assert!(re.is_match(generated.as_str()));
 
-        let re = Regex::new(r"[a-z]").unwrap();
-        assert!(re.is_match(generated.as_str()));
+            let re = Regex::new(r"[a-z]").unwrap();
+            assert!(re.is_match(generated.as_str()));
 
-        let re = Regex::new(r"[0-9]").unwrap();
-        assert!(re.is_match(generated.as_str()));
+            let re = Regex::new(r"[0-9]").unwrap();
+            assert!(re.is_match(generated.as_str()));
 
-        let re = Regex::new(r"[!@#$%^＆+]").unwrap();
-        assert!(re.is_match(generated.as_str()));
+            let re = Regex::new(r"[!@#$%^＆+]").unwrap();
+            assert!(re.is_match(generated.as_str()));
+        }
     }
 
     #[test]

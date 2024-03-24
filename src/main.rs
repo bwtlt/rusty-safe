@@ -23,6 +23,8 @@ enum Commands {
     List,
     /// Show item
     Show { name: Option<String> },
+    /// Generate password
+    Generate,
 }
 
 fn main() -> std::io::Result<()> {
@@ -50,6 +52,11 @@ fn main() -> std::io::Result<()> {
                 Some(item) => println!("{}", item),
             },
         },
+        Some(Commands::Generate) => {
+            let config = GeneratorConfig::new(PasswordType::PassWord, 8, true, true, true, true);
+            let password = generate_password(&config);
+            println!("Your new password: {}", password);
+        }
         None => {}
     }
 
